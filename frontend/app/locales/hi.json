@@ -1,0 +1,23 @@
+{
+  "appName": "स्टॉक प्रबंधक",
+  "appSubtitle": "ओम साई एंटरप्राइजेज",
+  "dashboard": "डैशबोर्ड",
+  "stock": "स्टॉक",
+  "purchases": "खरीद",
+  "sales": "बिक्री",
+  "ledger": "खाता बही",
+  "attendance": "उपस्थिति",
+  "analysis": "विश्लेषण",
+  "welcome": "वापस स्वागत है",
+  "overview": "आपके स्टॉक और संचालन का अवलोकन",
+  "totalItems": "कुल वस्तुएं",
+  "todaysSales": "आज की बिक्री",
+  "lowStock": "कम स्टॉक अलर्ट",
+  "pendingPayments": "लंबित भुगतान",
+  "inStock": "स्टॉक में",
+  "transactions": "4 लेनदेन",
+  "belowThreshold": "सीमा से नीचे वस्तुएं",
+  "fromBuyers": "खरीदारों से",
+  "recentActivity": "हालिया गतिविधि",
+  "noData": "डेटा कनेक्ट होने के बाद लेनदेन यहां दिखाई देंगे।"
+}

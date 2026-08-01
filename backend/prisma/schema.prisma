@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Item {
+  id          Int      @id @default(autoincrement())
+  name        String
+  unit        String
+  quantity    Float    @default(0)
+  threshold   Float    @default(10)
+  createdAt   DateTime @default(now())
+
+  stockTransactions StockTransaction[]
+  sales             Sale[]
+  purchases         Purchase[]
+}
+
+model StockTransaction {
+  id        Int      @id @default(autoincrement())
+  itemId    Int
+  type      String   // "IN" or "OUT"
+  quantity  Float
+  note      String?
+  createdAt DateTime @default(now())
+
+  item Item @relation(fields: [itemId], references: [id])
+}
+
+model Supplier {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  phone     String?
+  address   String?
+  createdAt DateTime   @default(now())
+
+  purchases Purchase[]
+}
+
+model Purchase {
+  id         Int      @id @default(autoincrement())
+  itemId     Int
+  supplierId Int
+  quantity   Float
+  rate       Float
+  total      Float
+  invoice    String?
+  date       DateTime @default(now())
+
+  item     Item     @relation(fields: [itemId], references: [id])
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+}
+
+model Buyer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+
+  sales Sale[]
+}
+
+model Sale {
+  id        Int      @id @default(autoincrement())
+  itemId    Int
+  buyerId   Int
+  quantity  Float
+  rate      Float
+  total     Float
+  date      DateTime @default(now())
+
+  item  Item @relation(fields: [itemId], references: [id])
+  buyer Buyer @relation(fields: [buyerId], references: [id])
+}
+
+model Worker {
+  id         Int          @id @default(autoincrement())
+  name       String
+  phone      String?
+  dailyRate  Float
+  createdAt  DateTime     @default(now())
+
+  attendance Attendance[]
+}
+
+model Attendance {
+  id       Int      @id @default(autoincrement())
+  workerId Int
+  date     DateTime
+  status   String   // "PRESENT", "ABSENT", "HALF"
+
+  worker Worker @relation(fields: [workerId], references: [id])
+}
+
+model LedgerEntry {
+  id          Int      @id @default(autoincrement())
+  type        String   // "CREDIT" or "DEBIT"
+  amount      Float
+  description String
+  date        DateTime @default(now())
+  refType     String?  // "SALE", "PURCHASE", "SALARY"
+  refId       Int?
+}

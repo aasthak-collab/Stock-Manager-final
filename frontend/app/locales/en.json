@@ -1,0 +1,23 @@
+{
+  "appName": "StockManager",
+  "appSubtitle": "Om Sai Enterprises",
+  "dashboard": "Dashboard",
+  "stock": "Stock",
+  "purchases": "Purchases",
+  "sales": "Sales",
+  "ledger": "Ledger",
+  "attendance": "Attendance",
+  "analysis": "Analysis",
+  "welcome": "Welcome back",
+  "overview": "Overview of your stock and operations",
+  "totalItems": "Total Items",
+  "todaysSales": "Today's Sales",
+  "lowStock": "Low Stock Alerts",
+  "pendingPayments": "Pending Payments",
+  "inStock": "in stock",
+  "transactions": "4 transactions",
+  "belowThreshold": "items below threshold",
+  "fromBuyers": "from buyers",
+  "recentActivity": "Recent Activity",
+  "noData": "Transactions will appear here once data is connected."
+}
