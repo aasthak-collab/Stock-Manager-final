@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import stockRouter from "./routes/stock";
+import purchasesRouter from "./routes/purchases";
+app.use("/api/purchases", purchasesRouter);
 
 dotenv.config();
 
