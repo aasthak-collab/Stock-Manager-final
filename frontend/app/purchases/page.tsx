@@ -94,8 +94,8 @@ export default function PurchasesPage() {
       {showForm && (
         <div className="bg-card rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4">
           <h3 className="text-beige font-semibold">New Purchase Entry</h3>
+          
           <div className="grid grid-cols-2 gap-4">
-            {/* Item Dropdown */}
             <div className="flex flex-col gap-1">
               <label className="text-soft text-xs">Item</label>
               <select
@@ -112,7 +112,6 @@ export default function PurchasesPage() {
               </select>
             </div>
 
-            {/* Supplier */}
             <div className="flex flex-col gap-1">
               <label className="text-soft text-xs">Supplier Name</label>
               <input
@@ -123,42 +122,39 @@ export default function PurchasesPage() {
               />
             </div>
 
-            {/* Quantity */}
             <div className="flex flex-col gap-1">
-             <label className="text-soft text-xs">Quantity</label>
-             <input
-              type="number"
-              placeholder="Enter quantity"
-              value={form.quantity || ""}
-              onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
-              className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
+              <label className="text-soft text-xs">Quantity</label>
+              <input
+                type="number"
+                placeholder="Enter quantity"
+                value={form.quantity || ""}
+                onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
+                className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
               />
             </div>
 
-            {/* Rate */}
             <div className="flex flex-col gap-1">
-  <label className="text-soft text-xs">Rate (₹ per unit)</label>
-  <input
-    type="number"
-    placeholder="Enter rate"
-    value={form.rate || ""}
-    onChange={(e) => setForm({ ...form, rate: Number(e.target.value) })}
-    className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
-  />
-</div>
+              <label className="text-soft text-xs">Rate (₹ per unit)</label>
+              <input
+                type="number"
+                placeholder="Enter rate"
+                value={form.rate || ""}
+                onChange={(e) => setForm({ ...form, rate: Number(e.target.value) })}
+                className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
+              />
+            </div>
 
-{/* Invoice */}
-<div className="flex flex-col gap-1 col-span-2">
-  <label className="text-soft text-xs">Invoice Number</label>
-  <input
-    placeholder="e.g. INV-001"
-    value={form.invoice}
-    onChange={(e) => setForm({ ...form, invoice: e.target.value })}
-    className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
-  />
-</div>
+            <div className="flex flex-col gap-1 col-span-2">
+              <label className="text-soft text-xs">Invoice Number</label>
+              <input
+                placeholder="e.g. INV-001"
+                value={form.invoice}
+                onChange={(e) => setForm({ ...form, invoice: e.target.value })}
+                className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
+              />
+            </div>
+          </div>
 
-          {/* Amount Preview */}
           {form.quantity > 0 && form.rate > 0 && (
             <div className="bg-blue-50 rounded-xl px-4 py-3">
               <p className="text-primary text-sm font-medium">
