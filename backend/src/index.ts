@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import stockRouter from "./routes/stock";
 import purchasesRouter from "./routes/purchases";
 import salesRouter from "./routes/sales";
+import ledgerRouter from "./routes/ledger";
+app.use("/api/ledger", ledgerRouter);
 
 dotenv.config();
 
