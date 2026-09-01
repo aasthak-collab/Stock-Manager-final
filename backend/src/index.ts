@@ -5,7 +5,6 @@ import stockRouter from "./routes/stock";
 import purchasesRouter from "./routes/purchases";
 import salesRouter from "./routes/sales";
 import ledgerRouter from "./routes/ledger";
-app.use("/api/ledger", ledgerRouter);
 
 dotenv.config();
 
@@ -14,6 +13,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/ledger", ledgerRouter);
 app.use("/api/sales", salesRouter);
 
 app.use("/api/stock", stockRouter);
