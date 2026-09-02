@@ -23,6 +23,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 
     res.json({ entries, totalCredit, totalDebit, balance });
   } catch (error) {
+    console.error("Ledger GET error:", error);   // ADD THIS LINE
     res.status(500).json({ error: "Failed to fetch ledger" });
   }
 });
@@ -36,6 +37,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     });
     res.json(entry);
   } catch (error) {
+    console.error("Ledger POST error:", error);   // ADD THIS LINE
     res.status(500).json({ error: "Failed to create entry" });
   }
 });
