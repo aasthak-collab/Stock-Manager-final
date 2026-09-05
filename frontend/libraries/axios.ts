@@ -4,16 +4,19 @@ const api = axios.create({
   baseURL: "http://localhost:5000",
 });
 
-// Attach token to every request automatically
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  if (user?.email) {
+    config.headers["x-user-email"] = user.email;
   }
   return config;
 });
 
-// Redirect to login if token expired
 api.interceptors.response.use(
   (response) => response,
   (error) => {

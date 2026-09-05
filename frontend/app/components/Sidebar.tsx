@@ -13,6 +13,7 @@ import {
   BarChart2,
 } from "lucide-react";
 import { Building2 } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 
 const navItems = [
   { key: "dashboard", href: "/", icon: LayoutDashboard },
@@ -22,7 +23,8 @@ const navItems = [
   { key: "ledger", href: "/ledger", icon: BookOpen },
   { key: "attendance", href: "/attendance", icon: Users },
   { key: "analysis", href: "/analysis", icon: BarChart2 },
-  { key: "suppliers", href: "/suppliers", icon: Building2 }
+  { key: "suppliers", href: "/suppliers", icon: Building2 },
+  { key: "audit", href: "/audit", icon: ClipboardList }
 ];
 
 export default function Sidebar() {

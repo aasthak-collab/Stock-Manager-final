@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { logAudit } from "../auditLogger";
 import prisma from "../prismaClient";
 
 const router = Router();
@@ -40,6 +41,13 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       data: { itemId, buyerId: buyer.id, quantity, rate, total },
       include: { item: true, buyer: true },
     });
+    
+    await logAudit(
+    "CREATE",
+    "SALE",
+    `Sold ${quantity} ${item.name} to ${buyerName} for ₹${total}`,
+    req.headers["x-user-email"] as string
+    );
 
     // Deduct stock
     await prisma.item.update({

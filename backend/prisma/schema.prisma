@@ -115,3 +115,13 @@ model LedgerEntry {
   refType     String?  // "SALE", "PURCHASE", "SALARY"
   refId       Int?
 }
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  module    String
+  details   String
+  userId    Int?
+  userEmail String?
+  createdAt DateTime @default(now())
+}
