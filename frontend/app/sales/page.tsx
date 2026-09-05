@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import api from "../../libraries/axios";
+import { generateInvoice } from "../components/InvoiceGenerator";
+import { FileText } from "lucide-react";
 
 interface Item {
   id: number;
@@ -193,16 +195,34 @@ export default function SalesPage() {
               <th className="text-left text-soft px-6 py-4 font-medium">Rate</th>
               <th className="text-left text-soft px-6 py-4 font-medium">Amount</th>
               <th className="text-left text-soft px-6 py-4 font-medium">Date</th>
+              <th className="text-left text-soft px-6 py-4 font-medium">Invoice</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="text-center text-soft py-8">Loading...</td>
+                <td colSpan={7} className="text-center text-soft py-8">Loading...</td>
+                <td className="px-6 py-4">
+                 <button
+                  onClick={() => generateInvoice(s)}
+                  className="flex items-center gap-1 text-primary text-xs hover:underline"
+  >
+                  <FileText size={14} />
+                  Download
+                 </button>
+                </td>
               </tr>
             ) : sales.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center text-soft py-8">No sales yet.</td>
+                <td colSpan={7} className="text-center text-soft py-8">No sales yet.</td>
+                <td className="px-6 py-4">
+                 <button
+                 onClick={() => generateInvoice(s)}
+                 className="flex items-center gap-1 text-primary text-xs hover:underline">
+                 <FileText size={14} />
+                 Download
+                 </button>
+                </td>
               </tr>
             ) : (
               sales.map((s) => (
@@ -214,6 +234,14 @@ export default function SalesPage() {
                   <td className="px-6 py-4 text-beige font-medium">₹{s.total.toLocaleString()}</td>
                   <td className="px-6 py-4 text-soft">
                     {new Date(s.date).toLocaleDateString("en-IN")}
+                  </td>
+                  <td className="px-6 py-4">
+                   <button
+                   onClick={() => generateInvoice(s)}
+                   className="flex items-center gap-1 text-primary text-xs hover:underline">
+                   <FileText size={14} />
+                   Download
+                   </button>
                   </td>
                 </tr>
               ))
