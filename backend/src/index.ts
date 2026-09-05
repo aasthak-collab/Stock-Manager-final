@@ -5,6 +5,7 @@ import stockRouter from "./routes/stock";
 import purchasesRouter from "./routes/purchases";
 import salesRouter from "./routes/sales";
 import ledgerRouter from "./routes/ledger";
+import attendanceRouter from "./routes/attendance";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use("/api/sales", salesRouter);
 
 app.use("/api/stock", stockRouter);
 app.use("/api/purchases", purchasesRouter);
+app.use("/api/attendance", attendanceRouter);
 
 // Test route
 app.get("/", (req, res) => {
