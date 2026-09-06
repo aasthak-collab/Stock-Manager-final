@@ -12,81 +12,107 @@ interface Sale {
 
 export const generateInvoice = async (sale: Sale) => {
   const { default: jsPDF } = await import("jspdf");
-
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Header
+  // Background header
   doc.setFillColor(37, 99, 235);
-  doc.rect(0, 0, pageWidth, 40, "F");
+  doc.rect(0, 0, pageWidth, 45, "F");
 
+  // Company name
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
+  doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  doc.text("Om Sai Enterprises", 20, 18);
+  doc.text("Om Sai Enterprises", 15, 18);
 
+  // Subtitle
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text("Construction Materials Supplier", 15, 26);
+  doc.text("GST: XXXXXXXXXXXX", 15, 33);
+
+  // Invoice label
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("INVOICE", pageWidth - 15, 18, { align: "right" });
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.text("No: INV-" + String(sale.id).padStart(4, "0"), pageWidth - 15, 26, { align: "right" });
+  doc.text("Date: " + new Date(sale.date).toLocaleDateString("en-IN"), pageWidth - 15, 33, { align: "right" });
+
+  // Bill To section
+  doc.setTextColor(30, 41, 59);
   doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("Bill To:", 15, 58);
   doc.setFont("helvetica", "normal");
-  doc.text("Construction Materials", 20, 26);
-  doc.text("INVOICE", pageWidth - 20, 18, { align: "right" });
-  doc.text(`#INV-${String(sale.id).padStart(4, "0")}`, pageWidth - 20, 26, { align: "right" });
-
-  // Invoice Details
-  doc.setTextColor(50, 50, 50);
   doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.text("Bill To:", 20, 55);
-  doc.setFont("helvetica", "normal");
-  doc.text(sale.buyer.name, 20, 63);
-
-  doc.setFont("helvetica", "bold");
-  doc.text("Date:", pageWidth - 70, 55);
-  doc.setFont("helvetica", "normal");
-  doc.text(new Date(sale.date).toLocaleDateString("en-IN"), pageWidth - 70, 63);
+  doc.text(sale.buyer.name, 15, 66);
 
   // Divider
-  doc.setDrawColor(200, 200, 200);
-  doc.line(20, 72, pageWidth - 20, 72);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.5);
+  doc.line(15, 74, pageWidth - 15, 74);
 
-  // Table Header
+  // Table header background
   doc.setFillColor(241, 245, 249);
-  doc.rect(20, 76, pageWidth - 40, 10, "F");
+  doc.rect(15, 78, pageWidth - 30, 10, "F");
 
+  // Table headers
   doc.setTextColor(100, 116, 139);
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("Item", 25, 83);
-  doc.text("Qty", 100, 83);
-  doc.text("Unit", 125, 83);
-  doc.text("Rate (₹)", 150, 83);
-  doc.text("Amount (₹)", 175, 83);
+  doc.text("ITEM DESCRIPTION", 20, 85);
+  doc.text("QTY", 110, 85);
+  doc.text("UNIT", 130, 85);
+  doc.text("RATE (Rs.)", 150, 85);
+  doc.text("AMOUNT (Rs.)", 175, 85);
 
-  // Table Row
+  // Table row
   doc.setTextColor(30, 41, 59);
   doc.setFont("helvetica", "normal");
-  doc.text(sale.item.name, 25, 96);
-  doc.text(String(sale.quantity), 100, 96);
-  doc.text(sale.item.unit, 125, 96);
-  doc.text(String(sale.rate), 150, 96);
-  doc.text(sale.total.toLocaleString(), 175, 96);
+  doc.setFontSize(10);
+  doc.text(sale.item.name, 20, 98);
+  doc.text(String(sale.quantity), 110, 98);
+  doc.text(sale.item.unit, 130, 98);
+  doc.text(String(sale.rate), 150, 98);
+  doc.text(sale.total.toLocaleString(), 175, 98);
 
-  // Divider
-  doc.setDrawColor(200, 200, 200);
-  doc.line(20, 103, pageWidth - 20, 103);
+  // Row divider
+  doc.setDrawColor(226, 232, 240);
+  doc.line(15, 105, pageWidth - 15, 105);
 
-  // Total
-  doc.setFontSize(12);
+  // Total section
+  doc.setFillColor(37, 99, 235);
+  doc.rect(pageWidth - 80, 110, 65, 14, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(37, 99, 235);
-  doc.text(`Total: ₹${sale.total.toLocaleString()}`, pageWidth - 20, 115, { align: "right" });
+  doc.text("TOTAL: Rs." + sale.total.toLocaleString(), pageWidth - 17, 119, { align: "right" });
+
+  // Amount in words
+  doc.setTextColor(100, 116, 139);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "italic");
+  doc.text("Amount is final and inclusive of all charges.", 15, 120);
+
+  // Footer divider
+  doc.setDrawColor(226, 232, 240);
+  doc.line(15, 260, pageWidth - 15, 260);
 
   // Footer
-  doc.setFontSize(9);
   doc.setTextColor(150, 150, 150);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text("Thank you for your business!", pageWidth / 2, 140, { align: "center" });
-  doc.text("Om Sai Enterprises — Construction Materials", pageWidth / 2, 147, { align: "center" });
+  doc.text("Thank you for your business with Om Sai Enterprises!", pageWidth / 2, 267, { align: "center" });
+  doc.text("This is a computer generated invoice.", pageWidth / 2, 273, { align: "center" });
 
-  // Save
-  doc.save(`Invoice-${String(sale.id).padStart(4, "0")}-${sale.buyer.name}.pdf`);
+  // Signature line
+  doc.setDrawColor(180, 180, 180);
+  doc.line(pageWidth - 70, 250, pageWidth - 15, 250);
+  doc.setTextColor(100, 116, 139);
+  doc.setFontSize(8);
+  doc.text("Authorized Signature", pageWidth - 42, 256, { align: "center" });
+
+  doc.save("Invoice-INV-" + String(sale.id).padStart(4, "0") + "-" + sale.buyer.name + ".pdf");
 };

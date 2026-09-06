@@ -220,6 +220,32 @@ export default function SettingsPage() {
             Add User
           </button>
         </div>
+        {/* Backup Section */}
+<div className="bg-card rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4">
+  <div className="flex items-center gap-2">
+    <h3 className="text-beige font-semibold">Data Backup</h3>
+  </div>
+  <p className="text-soft text-sm">
+    Download a complete backup of all your data — stock, sales, purchases, ledger, attendance and workers.
+  </p>
+  <button
+    onClick={async () => {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/settings/backup", {
+        headers: { Authorization: "Bearer " + token },
+      });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "omsai-backup-" + new Date().toISOString().split("T")[0] + ".json";
+      a.click();
+    }}
+    className="bg-primary text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-secondary transition-colors w-fit"
+  >
+    Download Backup
+  </button>
+</div>
 
         {/* Add User Form */}
         {showAddUser && (

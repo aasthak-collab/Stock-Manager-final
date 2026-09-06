@@ -78,5 +78,34 @@ router.post("/change-password", async (req: Request, res: Response): Promise<voi
     res.status(500).json({ error: "Failed to change password" });
   }
 });
+// Full data backup
+router.get("/backup", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const [items, purchases, sales, workers, attendance, ledger, suppliers] =
+      await Promise.all([
+        prisma.item.findMany(),
+        prisma.purchase.findMany({ include: { item: true, supplier: true } }),
+        prisma.sale.findMany({ include: { item: true, buyer: true } }),
+        prisma.worker.findMany(),
+        prisma.attendance.findMany({ include: { worker: true } }),
+        prisma.ledgerEntry.findMany(),
+        prisma.supplier.findMany(),
+      ]);
 
+    const backup = {
+      exportedAt: new Date().toISOString(),
+      company: "Om Sai Enterprises",
+      data: { items, purchases, sales, workers, attendance, ledger, suppliers },
+    };
+
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=backup-${new Date().toISOString().split("T")[0]}.json`
+    );
+    res.json(backup);
+  } catch (error) {
+    res.status(500).json({ error: "Backup failed" });
+  }
+});
 export default router;
