@@ -6,6 +6,7 @@ import Topbar from "./components/Topbar";
 import LanguageProvider from "./components/LanguageProvider";
 import AuthGuard from "./components/AuthGuard";
 import { usePathname } from "next/navigation";
+import { SessionProvider } from "next-auth/react";
 
 export default function RootLayout({
   children,
@@ -18,21 +19,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex min-h-screen">
-        <LanguageProvider>
-          <AuthGuard>
-            {isLoginPage ? (
-              <main className="flex-1">{children}</main>
-            ) : (
-              <>
-                <Sidebar />
-                <div className="flex flex-col flex-1">
-                  <Topbar />
-                  <main className="flex-1 p-6">{children}</main>
-                </div>
-              </>
-            )}
-          </AuthGuard>
-        </LanguageProvider>
+        <SessionProvider>
+          <LanguageProvider>
+            <AuthGuard>
+              {isLoginPage ? (
+                <main className="flex-1">{children}</main>
+              ) : (
+                <>
+                  <Sidebar />
+                  <div className="flex flex-col flex-1">
+                    <Topbar />
+                    <main className="flex-1 p-6">{children}</main>
+                  </div>
+                </>
+              )}
+            </AuthGuard>
+          </LanguageProvider>
+        </SessionProvider>
       </body>
     </html>
   );
