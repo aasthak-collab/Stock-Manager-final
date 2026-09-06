@@ -10,6 +10,7 @@ import authRouter from "./routes/auth";
 import suppliersRouter from "./routes/suppliers";
 import auditRouter from "./routes/audit";
 import settingsRouter from "./routes/settings";
+import dashboardRouter from "./routes/dashboard";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use("/api/purchases", purchasesRouter);
 app.use("/api/attendance", attendanceRouter);
 app.use("/api/audit", auditRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 // Test route
 app.get("/", (req, res) => {
