@@ -4,6 +4,7 @@ import "./globals.css";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import LanguageProvider from "./components/LanguageProvider";
+import AuthGuard from "./components/AuthGuard";
 import { usePathname } from "next/navigation";
 
 export default function RootLayout({
@@ -18,17 +19,19 @@ export default function RootLayout({
     <html lang="en">
       <body className="flex min-h-screen">
         <LanguageProvider>
-          {isLoginPage ? (
-            <main className="flex-1">{children}</main>
-          ) : (
-            <>
-              <Sidebar />
-              <div className="flex flex-col flex-1">
-                <Topbar />
-                <main className="flex-1 p-6">{children}</main>
-              </div>
-            </>
-          )}
+          <AuthGuard>
+            {isLoginPage ? (
+              <main className="flex-1">{children}</main>
+            ) : (
+              <>
+                <Sidebar />
+                <div className="flex flex-col flex-1">
+                  <Topbar />
+                  <main className="flex-1 p-6">{children}</main>
+                </div>
+              </>
+            )}
+          </AuthGuard>
         </LanguageProvider>
       </body>
     </html>
