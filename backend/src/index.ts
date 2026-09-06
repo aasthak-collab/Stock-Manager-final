@@ -9,6 +9,7 @@ import attendanceRouter from "./routes/attendance";
 import authRouter from "./routes/auth";
 import suppliersRouter from "./routes/suppliers";
 import auditRouter from "./routes/audit";
+import settingsRouter from "./routes/settings";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use("/api/stock", stockRouter);
 app.use("/api/purchases", purchasesRouter);
 app.use("/api/attendance", attendanceRouter);
 app.use("/api/audit", auditRouter);
+app.use("/api/settings", settingsRouter);
 
 // Test route
 app.get("/", (req, res) => {
