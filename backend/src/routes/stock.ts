@@ -59,6 +59,19 @@ router.post("/:id/deduct", async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ error: "Failed to deduct stock" });
   }
 });
+// Get all stock transactions
+router.get("/transactions", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const transactions = await prisma.stockTransaction.findMany({
+      include: { item: true },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    res.json(transactions);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch transactions" });
+  }
+});
 
 router.get("/:id/transactions", async (req: Request, res: Response): Promise<void> => {
   try {

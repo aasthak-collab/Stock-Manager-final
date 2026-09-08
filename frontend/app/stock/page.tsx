@@ -13,6 +13,8 @@ interface Item {
 }
 
 export default function StockPage() {
+  const [activeTab, setActiveTab] = useState<"stock" | "history">("stock");
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -180,6 +182,7 @@ export default function StockPage() {
           </div>
         </div>
       )}
+      
 
       {/* Search */}
       <input
