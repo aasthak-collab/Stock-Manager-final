@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "../../libraries/axios";
+import { Plus, Trash2 } from "lucide-react";
 
 interface Item {
   id: number;
@@ -20,18 +21,22 @@ interface Purchase {
   supplier: { name: string };
 }
 
+interface PurchaseRow {
+  itemId: string;
+  quantity: number;
+  rate: number;
+}
+
 export default function PurchasesPage() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    itemId: "",
-    supplierName: "",
-    quantity: 0,
-    rate: 0,
-    invoice: "",
-  });
+  const [supplierName, setSupplierName] = useState("");
+  const [invoice, setInvoice] = useState("");
+  const [rows, setRows] = useState<PurchaseRow[]>([
+    { itemId: "", quantity: 0, rate: 0 },
+  ]);
 
   const fetchPurchases = async () => {
     try {
@@ -58,15 +63,38 @@ export default function PurchasesPage() {
     fetchItems();
   }, []);
 
+  const addRow = () => {
+    setRows([...rows, { itemId: "", quantity: 0, rate: 0 }]);
+  };
+
+  const removeRow = (index: number) => {
+    setRows(rows.filter((_, i) => i !== index));
+  };
+
+  const updateRow = (index: number, field: keyof PurchaseRow, value: string | number) => {
+    const updated = [...rows];
+    updated[index] = { ...updated[index], [field]: value };
+    setRows(updated);
+  };
+
+  const totalAmount = rows.reduce((sum, r) => sum + (r.quantity * r.rate), 0);
+
   const handleAddPurchase = async () => {
     try {
-      await api.post("/api/purchases", {
-        ...form,
-        itemId: parseInt(form.itemId),
-        quantity: Number(form.quantity),
-        rate: Number(form.rate),
-      });
-      setForm({ itemId: "", supplierName: "", quantity: 0, rate: 0, invoice: "" });
+      // Submit each row as a separate purchase with same supplier and invoice
+      for (const row of rows) {
+        if (!row.itemId || !row.quantity || !row.rate) continue;
+        await api.post("/api/purchases", {
+          itemId: parseInt(row.itemId),
+          supplierName,
+          quantity: Number(row.quantity),
+          rate: Number(row.rate),
+          invoice,
+        });
+      }
+      setRows([{ itemId: "", quantity: 0, rate: 0 }]);
+      setSupplierName("");
+      setInvoice("");
       setShowForm(false);
       fetchPurchases();
     } catch (err) {
@@ -94,74 +122,108 @@ export default function PurchasesPage() {
       {showForm && (
         <div className="bg-card rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4">
           <h3 className="text-beige font-semibold">New Purchase Entry</h3>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-soft text-xs">Item</label>
-              <select
-                value={form.itemId}
-                onChange={(e) => setForm({ ...form, itemId: e.target.value })}
-                className="bg-gray-50 border border-gray-200 text-beige rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
-              >
-                <option value="">Select item</option>
-                {items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name} ({item.unit})
-                  </option>
-                ))}
-              </select>
-            </div>
 
+          {/* Supplier + Invoice */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-soft text-xs">Supplier Name</label>
               <input
                 placeholder="Enter supplier name"
-                value={form.supplierName}
-                onChange={(e) => setForm({ ...form, supplierName: e.target.value })}
+                value={supplierName}
+                onChange={(e) => setSupplierName(e.target.value)}
                 className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
               />
             </div>
-
             <div className="flex flex-col gap-1">
-              <label className="text-soft text-xs">Quantity</label>
-              <input
-                type="number"
-                placeholder="Enter quantity"
-                value={form.quantity || ""}
-                onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
-                className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-soft text-xs">Rate (₹ per unit)</label>
-              <input
-                type="number"
-                placeholder="Enter rate"
-                value={form.rate || ""}
-                onChange={(e) => setForm({ ...form, rate: Number(e.target.value) })}
-                className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1 col-span-2">
               <label className="text-soft text-xs">Invoice Number</label>
               <input
                 placeholder="e.g. INV-001"
-                value={form.invoice}
-                onChange={(e) => setForm({ ...form, invoice: e.target.value })}
+                value={invoice}
+                onChange={(e) => setInvoice(e.target.value)}
                 className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-4 py-2 text-sm outline-none focus:border-primary"
               />
             </div>
           </div>
 
-          {form.quantity > 0 && form.rate > 0 && (
-            <div className="bg-blue-50 rounded-xl px-4 py-3">
-              <p className="text-primary text-sm font-medium">
-                Total Amount: ₹{(form.quantity * form.rate).toLocaleString()}
-              </p>
+          {/* Item Rows */}
+          <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-12 gap-2 px-1">
+              <p className="col-span-5 text-soft text-xs">Item</p>
+              <p className="col-span-2 text-soft text-xs">Quantity</p>
+              <p className="col-span-2 text-soft text-xs">Rate (₹)</p>
+              <p className="col-span-2 text-soft text-xs">Amount</p>
+              <p className="col-span-1"></p>
             </div>
-          )}
+
+            {rows.map((row, index) => (
+              <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                <div className="col-span-5">
+                  <select
+                    value={row.itemId}
+                    onChange={(e) => updateRow(index, "itemId", e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-beige rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="">Select item</option>
+                    {items.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} ({item.unit})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={row.quantity || ""}
+                    onChange={(e) => updateRow(index, "quantity", Number(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={row.rate || ""}
+                    onChange={(e) => updateRow(index, "rate", Number(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <p className="text-beige text-sm font-medium px-1">
+                    ₹{(row.quantity * row.rate).toLocaleString()}
+                  </p>
+                </div>
+                <div className="col-span-1 flex justify-center">
+                  {rows.length > 1 && (
+                    <button
+                      onClick={() => removeRow(index)}
+                      className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center hover:bg-red-100 transition-colors"
+                    >
+                      <Trash2 size={13} className="text-red-500" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Add Row Button */}
+          <button
+            onClick={addRow}
+            className="flex items-center gap-2 text-primary text-sm hover:underline w-fit"
+          >
+            <Plus size={14} />
+            Add another item
+          </button>
+
+          {/* Total */}
+          <div className="bg-blue-50 rounded-xl px-4 py-3 flex items-center justify-between">
+            <p className="text-soft text-sm">Total Amount</p>
+            <p className="text-primary font-bold text-lg">
+              ₹{totalAmount.toLocaleString()}
+            </p>
+          </div>
 
           <div className="flex gap-3">
             <button

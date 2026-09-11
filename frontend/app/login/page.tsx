@@ -41,9 +41,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-bg">
       <div className="w-full max-w-md px-8 py-10 rounded-2xl border border-gray-200 bg-card shadow-lg flex flex-col items-center gap-6">
 
-        <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center">
-          <span className="text-white text-2xl font-bold">OS</span>
-        </div>
+        <img
+  src="/logo.png"
+  alt="Om Sai Enterprises"
+  className="w-20 h-20 object-contain"
+/>
 
         <div className="text-center">
           <h1 className="text-beige text-2xl font-bold">Welcome Back</h1>

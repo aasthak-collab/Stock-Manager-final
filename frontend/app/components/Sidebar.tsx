@@ -35,24 +35,28 @@ export default function Sidebar() {
   const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [userName, setUserName] = useState("A");
+  const [fullName, setFullName] = useState("User");
+  const [role, setRole] = useState("staff");
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     setIsAdmin(user.role === "admin");
     setUserName(user.name?.charAt(0) || "A");
+    setFullName(user.name || "User");
+    setRole(user.role || "staff");
   }, []);
 
-  const visibleItems = navItems.filter(
-    (item) => !item.adminOnly || isAdmin
-  );
+  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <aside className="w-64 min-h-screen bg-sidebar flex flex-col">
       <div className="px-6 py-6 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <span className="text-white text-sm font-bold">OS</span>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Om Sai Enterprises"
+            className="w-10 h-10 rounded-xl object-contain"
+          />
           <div>
             <h1 className="text-white text-sm font-bold">{t("appName")}</h1>
             <p className="text-white/50 text-xs">{t("appSubtitle")}</p>
@@ -87,12 +91,8 @@ export default function Sidebar() {
             {userName}
           </div>
           <div>
-            <p className="text-white text-xs font-medium">
-              {JSON.parse(localStorage?.getItem("user") || "{}").name || "User"}
-            </p>
-            <p className="text-white/40 text-xs">
-              {JSON.parse(localStorage?.getItem("user") || "{}").role || "staff"}
-            </p>
+            <p className="text-white text-xs font-medium">{fullName}</p>
+            <p className="text-white/40 text-xs">{role}</p>
           </div>
         </div>
       </div>

@@ -101,7 +101,8 @@ model Attendance {
   id       Int      @id @default(autoincrement())
   workerId Int
   date     DateTime
-  status   String   // "PRESENT", "ABSENT", "HALF"
+  status   String
+  note     String?
 
   worker Worker @relation(fields: [workerId], references: [id])
 }

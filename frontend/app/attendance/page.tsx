@@ -14,6 +14,7 @@ interface Worker {
 interface AttendanceRecord {
   workerId: number;
   status: string;
+  note: string;
   worker: { name: string };
 }
 
@@ -26,6 +27,7 @@ export default function AttendancePage() {
   const [showWorkerForm, setShowWorkerForm] = useState(false);
   const [showSalaryModal, setShowSalaryModal] = useState(false);
   const [salaryResult, setSalaryResult] = useState<any>(null);
+  const [notes, setNotes] = useState<Record<number, string>>({});
   const [workerForm, setWorkerForm] = useState({
     name: "",
     phone: "",
@@ -50,6 +52,12 @@ export default function AttendancePage() {
     try {
       const res = await api.get(`/api/attendance/date/${date}`);
       setAttendance(res.data);
+      // Pre-fill notes from existing attendance
+      const noteMap: Record<number, string> = {};
+      res.data.forEach((a: AttendanceRecord) => {
+        if (a.note) noteMap[a.workerId] = a.note;
+      });
+      setNotes(noteMap);
     } catch (err) {
       console.error(err);
     }
@@ -85,6 +93,7 @@ export default function AttendancePage() {
         workerId,
         date: selectedDate,
         status,
+        note: notes[workerId] || "",
       });
       fetchAttendance(selectedDate);
     } catch (err) {
@@ -213,12 +222,13 @@ export default function AttendancePage() {
               <th className="text-left text-soft px-4 py-3 font-medium">Daily Rate</th>
               <th className="text-left text-soft px-4 py-3 font-medium">Status</th>
               <th className="text-left text-soft px-4 py-3 font-medium">Mark</th>
+              <th className="text-left text-soft px-4 py-3 font-medium">Note</th>
             </tr>
           </thead>
           <tbody>
             {workers.length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center text-soft py-8">
+                <td colSpan={5} className="text-center text-soft py-8">
                   No workers added yet.
                 </td>
               </tr>
@@ -248,6 +258,20 @@ export default function AttendancePage() {
                         </button>
                       ))}
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      placeholder="Add note..."
+                      value={notes[worker.id] || ""}
+                      onChange={(e) => setNotes({ ...notes, [worker.id]: e.target.value })}
+                      onBlur={() => {
+                        const currentStatus = getStatus(worker.id);
+                        if (currentStatus !== "ABSENT" || notes[worker.id]) {
+                          handleMarkAttendance(worker.id, currentStatus);
+                        }
+                      }}
+                      className="bg-gray-50 border border-gray-200 text-beige placeholder:text-soft/40 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary w-40"
+                    />
                   </td>
                 </tr>
               ))

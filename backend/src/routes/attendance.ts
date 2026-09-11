@@ -31,9 +31,8 @@ router.post("/workers", async (req: Request, res: Response): Promise<void> => {
 // Mark attendance
 router.post("/mark", async (req: Request, res: Response): Promise<void> => {
   try {
-    const { workerId, date, status } = req.body;
+    const { workerId, date, status, note } = req.body;
 
-    // Check if attendance already marked for this date
     const existing = await prisma.attendance.findFirst({
       where: {
         workerId: Number(workerId),
@@ -42,19 +41,18 @@ router.post("/mark", async (req: Request, res: Response): Promise<void> => {
     });
 
     if (existing) {
-      // Update existing
       const updated = await prisma.attendance.update({
         where: { id: existing.id },
-        data: { status },
+        data: { status, note },
       });
       res.json(updated);
     } else {
-      // Create new
       const attendance = await prisma.attendance.create({
         data: {
           workerId: Number(workerId),
           date: new Date(date),
           status,
+          note,
         },
       });
       res.json(attendance);
@@ -91,7 +89,6 @@ router.post("/pay-salary", async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Get all attendance for this month
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
 
@@ -102,13 +99,11 @@ router.post("/pay-salary", async (req: Request, res: Response): Promise<void> =>
       },
     });
 
-    // Calculate days
     const fullDays = records.filter((r) => r.status === "PRESENT").length;
     const halfDays = records.filter((r) => r.status === "HALF").length;
     const totalDays = fullDays + halfDays * 0.5;
     const salary = totalDays * worker.dailyRate;
 
-    // Create ledger entry
     await prisma.ledgerEntry.create({
       data: {
         type: "DEBIT",
