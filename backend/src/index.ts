@@ -8,8 +8,8 @@ import ledgerRouter from "./routes/ledger";
 import attendanceRouter from "./routes/attendance";
 import authRouter from "./routes/auth";
 import suppliersRouter from "./routes/suppliers";
-import auditRouter from "./routes/audit";
 import settingsRouter from "./routes/settings";
+import auditRouter from "./routes/audit";
 import dashboardRouter from "./routes/dashboard";
 
 dotenv.config();
@@ -17,20 +17,27 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    process.env.FRONTEND_URL || "",
+  ],
+  credentials: true,
+}));
+
 app.use(express.json());
-app.use("/api/auth", authRouter);
-app.use("/api/ledger", ledgerRouter);
-app.use("/api/sales", salesRouter);
-app.use("/api/suppliers", suppliersRouter);
+
 app.use("/api/stock", stockRouter);
 app.use("/api/purchases", purchasesRouter);
+app.use("/api/sales", salesRouter);
+app.use("/api/ledger", ledgerRouter);
 app.use("/api/attendance", attendanceRouter);
-app.use("/api/audit", auditRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/suppliers", suppliersRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/audit", auditRouter);
 app.use("/api/dashboard", dashboardRouter);
 
-// Test route
 app.get("/", (req, res) => {
   res.json({ message: "Stock Manager API is running" });
 });

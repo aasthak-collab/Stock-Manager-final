@@ -55,7 +55,7 @@ export default function Sidebar() {
           <img
             src="/logo.png"
             alt="Om Sai Enterprises"
-            className="w-10 h-10 rounded-xl object-contain"
+            className="w-24 h-24 object-contain"
           />
           <div>
             <h1 className="text-white text-sm font-bold">{t("appName")}</h1>
