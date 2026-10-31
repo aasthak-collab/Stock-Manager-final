@@ -6,10 +6,36 @@ import jwt from "jsonwebtoken";
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "omsai_secret_key";
 
-// Register (only used to create the first admin)
+// Limit comes from the MAX_ADMINS environment variable (defaults to 3)
+const MAX_ADMINS = Number(process.env.MAX_ADMINS) || 3;
+
+// Register: open only until MAX_ADMINS exist, then only a logged-in admin can use it
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, email, password, role } = req.body;
+
+    // Count existing admins
+    const adminCount = await prisma.user.count({ where: { role: "admin" } });
+
+    // Once the limit is reached, require an admin token
+    if (adminCount >= MAX_ADMINS) {
+      const token = req.headers.authorization?.split(" ")[1];
+      let decoded: any = null;
+      try {
+        decoded = token ? jwt.verify(token, JWT_SECRET) : null;
+      } catch {
+        decoded = null;
+      }
+      if (!decoded || decoded.role !== "admin") {
+        res.status(403).json({ error: "Not allowed" });
+        return;
+      }
+      // Block creating more admins past the limit
+      if (role === "admin") {
+        res.status(403).json({ error: `Maximum ${MAX_ADMINS} admins allowed` });
+        return;
+      }
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
