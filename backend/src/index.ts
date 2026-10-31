@@ -1,3 +1,4 @@
+import prisma from "./prismaClient";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -24,6 +25,12 @@ app.use(cors({
   ],
   credentials: true,
 }));
+
+// Keeps Supabase + Render awake when pinged
+app.get("/health", async (req, res) => {
+  await prisma.item.count();
+  res.json({ ok: true });
+});
 
 app.use(express.json());
 
