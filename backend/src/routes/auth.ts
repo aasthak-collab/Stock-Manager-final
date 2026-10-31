@@ -4,10 +4,10 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || "omsai_secret_key";
+const JWT_SECRET = process.env.JWT_SECRET as string; // must be set on Render
 
-// Limit comes from the MAX_ADMINS environment variable (defaults to 3)
-const MAX_ADMINS = Number(process.env.MAX_ADMINS) || 3;
+// Limit comes from the MAX_ADMINS environment variable (defaults to 4)
+const MAX_ADMINS = Number(process.env.MAX_ADMINS) || 4;
 
 // Register: open only until MAX_ADMINS exist, then only a logged-in admin can use it
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
