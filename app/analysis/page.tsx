@@ -154,7 +154,7 @@ export default function AnalysisPage() {
   // value can be undefined, so convert it to a number safely
   formatter={(value) => [`₹${Number(value ?? 0).toLocaleString()}`, "Sales"]}
 />
-              />
+          
               <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
