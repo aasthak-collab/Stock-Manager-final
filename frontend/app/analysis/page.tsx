@@ -151,8 +151,10 @@ export default function AnalysisPage() {
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#64748b" }} />
               <YAxis tick={{ fontSize: 12, fill: "#64748b" }} />
               <Tooltip
-                formatter={(value: number) => [`₹${value.toLocaleString()}`, "Sales"]}
-              />
+  // value can be undefined, so convert it safely
+  formatter={(value) => [`₹${Number(value ?? 0).toLocaleString()}`, "Sales"]}
+/>
+          
               <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
