@@ -151,7 +151,7 @@ export default function AnalysisPage() {
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#64748b" }} />
               <YAxis tick={{ fontSize: 12, fill: "#64748b" }} />
               <Tooltip
-  // value can be undefined, so convert it to a number safely
+  // value can be undefined, so convert it safely
   formatter={(value) => [`₹${Number(value ?? 0).toLocaleString()}`, "Sales"]}
 />
           
