@@ -1,180 +1,211 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import api from "../libraries/axios";
-import {
-  Package,
-  TrendingUp,
-  AlertTriangle,
-  Wallet,
-  ArrowUpRight,
-  ArrowDownRight,
-} from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+import { Package, AlertTriangle, ArrowDownLeft, ArrowUpRight, TrendingUp, Wallet, PackageX, Boxes } from "lucide-react";
 
-interface DashboardData {
-  totalItems: number;
-  todaysSalesTotal: number;
-  todaysSalesCount: number;
-  lowStockCount: number;
-  balance: number;
-  recentActivity: {
-    id: number;
-    type: string;
-    amount: number;
-    description: string;
-    date: string;
-    refType: string;
-  }[];
-}
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const rs = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 
 export default function Home() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [sales, setSales] = useState<any[]>([]);
+  const [purchases, setPurchases] = useState<any[]>([]);
+  const [items, setItems] = useState<any[]>([]);
+  const [ledger, setLedger] = useState<any>({ totalCredit: 0, totalDebit: 0 });
 
   useEffect(() => {
-    const fetchDashboard = async () => {
+    // Load everything the dashboard needs
+    const load = async () => {
       try {
-        const res = await api.get("/api/dashboard");
-        setData(res.data);
+        const [s, p, i, l] = await Promise.all([
+          api.get("/api/sales"),
+          api.get("/api/purchases"),
+          api.get("/api/stock"),
+          api.get("/api/ledger"),
+        ]);
+        setSales(s.data);
+        setPurchases(p.data);
+        setItems(i.data);
+        setLedger(l.data);
       } catch (err) {
         console.error(err);
-      } finally {
-        setLoading(false);
       }
     };
-    fetchDashboard();
+    load();
   }, []);
 
-  const stats = data
-    ? [
-        {
-          label: "Total Items",
-          value: String(data.totalItems),
-          sub: "in stock",
-          icon: Package,
-          colorClass: "text-blue-500",
-          lightClass: "bg-blue-50",
-          up: true,
-        },
-        {
-          label: "Today's Sales",
-          value: "Rs." + data.todaysSalesTotal.toLocaleString(),
-          sub: data.todaysSalesCount + " transactions",
-          icon: TrendingUp,
-          colorClass: "text-orange-500",
-          lightClass: "bg-orange-50",
-          up: true,
-        },
-        {
-          label: "Low Stock Alerts",
-          value: String(data.lowStockCount),
-          sub: "items below limit",
-          icon: AlertTriangle,
-          colorClass: "text-red-500",
-          lightClass: "bg-red-50",
-          up: false,
-        },
-        {
-          label: "Net Balance",
-          value: "Rs." + data.balance.toLocaleString(),
-          sub: "total ledger balance",
-          icon: Wallet,
-          colorClass: "text-green-500",
-          lightClass: "bg-green-50",
-          up: data.balance >= 0,
-        },
-      ]
-    : [];
+  const year = new Date().getFullYear();
+  const totalSales = sales.reduce((a, s) => a + s.total, 0);
+  const totalPurchases = purchases.reduce((a, p) => a + p.total, 0);
+  const lowItems = items.filter((i) => i.quantity <= i.threshold);
+  const outItems = items.filter((i) => i.quantity === 0);
 
-  const quickLinks = [
-    { label: "Add Stock", colorClass: "bg-blue-500", href: "/stock" },
-    { label: "New Sale", colorClass: "bg-orange-500", href: "/sales" },
-    { label: "Attendance", colorClass: "bg-purple-500", href: "/attendance" },
-    { label: "Ledger", colorClass: "bg-green-500", href: "/ledger" },
-  ];
+  // Sales per month for the chart
+  const chart = MONTHS.map((m, idx) => ({
+    month: m,
+    total: sales
+      .filter((s) => new Date(s.date).getFullYear() === year && new Date(s.date).getMonth() === idx)
+      .reduce((a, s) => a + s.total, 0),
+  }));
+
+  // Latest 5 sales + purchases mixed together
+  const recent = [
+    ...sales.map((s) => ({ id: "s" + s.id, kind: "sale", label: "Sale to " + s.buyer.name, amount: s.total, date: s.date })),
+    ...purchases.map((p) => ({ id: "p" + p.id, kind: "purchase", label: "Purchase from " + p.supplier.name, amount: p.total, date: p.date })),
+  ]
+    .sort((a, b) => +new Date(b.date) - +new Date(a.date))
+    .slice(0, 5);
+
+  const card = "bg-card rounded-2xl p-4 md:p-5 shadow-sm border border-gray-100";
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="text-beige text-2xl font-bold">Dashboard</h2>
-        <p className="text-soft text-sm mt-1">
-          Overview of your stock and operations
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {loading
-          ? [0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="bg-card rounded-2xl p-5 border border-gray-100 shadow-sm animate-pulse h-32"
-              />
-            ))
-          : stats.map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <div
-                  key={stat.label}
-                  className="bg-card rounded-2xl p-5 flex flex-col gap-3 shadow-sm border border-gray-100"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className={"w-10 h-10 rounded-xl " + stat.lightClass + " flex items-center justify-center"}>
-                      <Icon size={20} className={stat.colorClass} />
-                    </div>
-                    {stat.up ? (
-                      <ArrowUpRight size={16} className="text-green-500" />
-                    ) : (
-                      <ArrowDownRight size={16} className="text-red-500" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-beige text-2xl font-bold">{stat.value}</p>
-                    <p className="text-soft text-xs mt-0.5">{stat.label}</p>
-                  </div>
-                </div>
-              );
-            })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-card rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-beige font-semibold mb-4">Recent Activity</h3>
-          <div className="flex flex-col gap-2">
-            {loading ? (
-              <p className="text-soft text-sm">Loading...</p>
-            ) : !data || data.recentActivity.length === 0 ? (
-              <p className="text-soft text-sm">No transactions yet.</p>
-            ) : (
-              data.recentActivity.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"
-                >
-                  <div>
-                    <p className="text-beige text-sm">{entry.description}</p>
-                    <p className="text-soft text-xs mt-0.5">
-                      {new Date(entry.date).toLocaleDateString("en-IN")} · {entry.refType}
-                    </p>
-                  </div>
-                  <p className={"text-sm font-medium " + (entry.type === "CREDIT" ? "text-green-600" : "text-red-500")}>
-                    {entry.type === "CREDIT" ? "+" : "-"}Rs.{entry.amount.toLocaleString()}
-                  </p>
-                </div>
-              ))
-            )}
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Big sales chart */}
+        <div className={`${card} lg:col-span-2`}>
+          <p className="text-soft text-sm">Total Sales</p>
+          <p className="text-2xl font-bold text-green-600">{rs(totalSales)}</p>
+          <div className="h-52 mt-3">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chart}>
+                <defs>
+                  <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2563eb" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#2563eb" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} width={45} />
+                <Tooltip formatter={(v) => [rs(Number(v ?? 0)), "Sales"]} />
+                <Area type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={2} fill="url(#fill)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-card rounded-2xl p-6 shadow-sm border border-gray-100">
-  <h3 className="text-beige font-semibold mb-4">Quick Access</h3>
-  <div className="grid grid-cols-2 gap-3">
-    <a href="/stock" className="bg-blue-500 text-white rounded-xl py-4 text-sm font-medium hover:opacity-90 transition-opacity text-center block">Add Stock</a>
-    <a href="/sales" className="bg-orange-500 text-white rounded-xl py-4 text-sm font-medium hover:opacity-90 transition-opacity text-center block">New Sale</a>
-    <a href="/attendance" className="bg-purple-500 text-white rounded-xl py-4 text-sm font-medium hover:opacity-90 transition-opacity text-center block">Attendance</a>
-    <a href="/ledger" className="bg-green-500 text-white rounded-xl py-4 text-sm font-medium hover:opacity-90 transition-opacity text-center block">Ledger</a>
-  </div>
-</div>
+        {/* Side summary cards */}
+        <div className={`${card} flex flex-col gap-3 justify-center`}>
+          {[
+            { label: "Sales", value: totalSales, icon: TrendingUp, bg: "bg-blue-50", color: "text-blue-500" },
+            { label: "Purchases", value: totalPurchases, icon: ArrowDownLeft, bg: "bg-green-50", color: "text-green-500" },
+            { label: "Net Balance", value: ledger.totalCredit - ledger.totalDebit, icon: Wallet, bg: "bg-red-50", color: "text-red-500" },
+          ].map((c) => (
+            <div key={c.label} className="flex items-center gap-3 border-b border-gray-50 last:border-0 pb-3 last:pb-0">
+              <div className={`w-11 h-11 rounded-xl ${c.bg} flex items-center justify-center`}>
+                <c.icon size={20} className={c.color} />
+              </div>
+              <div>
+                <p className="text-soft text-xs">{c.label}</p>
+                <p className="text-beige font-bold">{rs(c.value)}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Inventory overview: stock-only metrics */}
+        <div className={`${card} lg:col-span-2`}>
+          <p className="text-beige font-semibold mb-3">Inventory Overview</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "Total Items", value: items.length, icon: Boxes, bg: "bg-purple-50", color: "text-purple-500" },
+              { label: "Low Stock Items", value: lowItems.length, icon: AlertTriangle, bg: "bg-orange-50", color: "text-orange-500" },
+              { label: "Out of Stock", value: outItems.length, icon: PackageX, bg: "bg-red-50", color: "text-red-500" },
+              { label: "In Stock", value: items.length - lowItems.length, icon: Package, bg: "bg-green-50", color: "text-green-500" },
+            ].map((c) => (
+              <div key={c.label} className="border border-gray-100 rounded-xl p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-soft text-xs">{c.label}</p>
+                  <p className="text-beige text-xl font-bold">{c.value}</p>
+                </div>
+                <div className={`w-10 h-10 rounded-full ${c.bg} flex items-center justify-center`}>
+                  <c.icon size={18} className={c.color} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Income / expense blocks */}
+        <div className="flex flex-col gap-3">
+          <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex justify-between items-center">
+            <div>
+              <p className="text-soft text-xs">Total Income</p>
+              <p className="text-green-600 text-xl font-bold">{rs(ledger.totalCredit)}</p>
+            </div>
+            <ArrowDownLeft className="text-green-500" />
+          </div>
+          <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex justify-between items-center">
+            <div>
+              <p className="text-soft text-xs">Total Expenses</p>
+              <p className="text-red-500 text-xl font-bold">{rs(ledger.totalDebit)}</p>
+            </div>
+            <ArrowUpRight className="text-red-500" />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Stock summary table */}
+        <div className={card}>
+          <div className="flex justify-between mb-3">
+            <p className="text-beige font-semibold">Stock Summary</p>
+            <Link href="/stock" className="text-primary text-xs">View All</Link>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-soft text-xs text-left">
+                <th className="py-2">Item</th>
+                <th>In Stock</th>
+                <th>Min</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.slice(0, 5).map((i) => (
+                <tr key={i.id} className="border-t border-gray-50">
+                  <td className="py-2 text-beige">{i.name}</td>
+                  <td>{i.quantity} {i.unit}</td>
+                  <td className="text-soft">{i.threshold}</td>
+                  <td>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${i.quantity <= i.threshold ? "bg-red-50 text-red-500" : "bg-green-50 text-green-600"}`}>
+                      {i.quantity <= i.threshold ? "Low" : "OK"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Recent transactions */}
+        <div className={card}>
+          <div className="flex justify-between mb-3">
+            <p className="text-beige font-semibold">Recent Transactions</p>
+            <Link href="/ledger" className="text-primary text-xs">View All</Link>
+          </div>
+          {recent.length === 0 ? (
+            <p className="text-soft text-sm">No transactions yet.</p>
+          ) : (
+            recent.map((r) => (
+              <div key={r.id} className="flex items-center gap-3 py-2 border-t border-gray-50">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${r.kind === "sale" ? "bg-blue-50 text-blue-500" : "bg-green-50 text-green-500"}`}>
+                  {r.kind === "sale" ? <ArrowUpRight size={14} /> : <ArrowDownLeft size={14} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-beige text-sm truncate">{r.label}</p>
+                  <p className="text-soft text-xs">{new Date(r.date).toLocaleDateString("en-IN")}</p>
+                </div>
+                <p className="text-beige text-sm font-medium">{rs(r.amount)}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

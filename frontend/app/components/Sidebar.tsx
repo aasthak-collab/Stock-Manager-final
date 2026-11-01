@@ -5,22 +5,14 @@ import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  TrendingUp,
-  BookOpen,
-  Users,
-  BarChart2,
-  Building2,
-  ClipboardList,
-  Settings,
+  LayoutDashboard, Package, ArrowDownToLine, TrendingUp, BookOpen,
+  Users, BarChart2, Building2, ClipboardList, Settings, X,
 } from "lucide-react";
 
 const navItems = [
   { key: "dashboard", href: "/", icon: LayoutDashboard, adminOnly: false },
   { key: "stock", href: "/stock", icon: Package, adminOnly: false },
-  { key: "purchases", href: "/purchases", icon: ShoppingCart, adminOnly: false },
+  { key: "purchases", href: "/purchases", icon: ArrowDownToLine, adminOnly: false },
   { key: "sales", href: "/sales", icon: TrendingUp, adminOnly: false },
   { key: "ledger", href: "/ledger", icon: BookOpen, adminOnly: false },
   { key: "attendance", href: "/attendance", icon: Users, adminOnly: false },
@@ -30,72 +22,67 @@ const navItems = [
   { key: "settings", href: "/settings", icon: Settings, adminOnly: true },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userName, setUserName] = useState("A");
-  const [fullName, setFullName] = useState("User");
-  const [role, setRole] = useState("staff");
+  const [user, setUser] = useState<any>({});
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    setIsAdmin(user.role === "admin");
-    setUserName(user.name?.charAt(0) || "A");
-    setFullName(user.name || "User");
-    setRole(user.role || "staff");
+    setUser(JSON.parse(localStorage.getItem("user") || "{}"));
   }, []);
 
-  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin);
+  const items = navItems.filter((i) => !i.adminOnly || user.role === "admin");
 
   return (
-    <aside className="w-64 min-h-screen bg-sidebar flex flex-col">
-      <div className="px-6 py-6 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <img
-            src="/logo.png"
-            alt="Om Sai Enterprises"
-            className="w-24 h-24 object-contain"
-          />
-          <div>
-            <h1 className="text-white text-sm font-bold">{t("appName")}</h1>
-            <p className="text-white/50 text-xs">{t("appSubtitle")}</p>
-          </div>
-        </div>
-      </div>
+    <>
+      {/* Dark overlay: phones only, when the drawer is open */}
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      />
 
-      <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
-        {visibleItems.map((item) => {
-          const Icon = item.icon;
-          const active = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors
-                ${active
-                  ? "bg-primary text-white"
-                  : "text-white/60 hover:bg-white/10 hover:text-white"
+      {/* Phones: slide-in drawer. md and up: always visible column */}
+      <aside
+        className={`fixed md:sticky top-0 h-screen z-40 w-60 shrink-0 bg-sidebar flex flex-col
+          transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+      >
+        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+          <img src="/logo.png" alt="Om Sai" className="w-20 h-20 object-contain" />
+          <button onClick={onClose} className="md:hidden text-white/70">
+            <X size={20} />
+          </button>
+        </div>
+
+        <nav className="flex flex-col gap-1 px-3 py-4 flex-1 overflow-y-auto">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                  active ? "bg-primary text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
-            >
-              <Icon size={18} />
-              {t(item.key)}
-            </Link>
-          );
-        })}
-      </nav>
+              >
+                <Icon size={18} />
+                {t(item.key)}
+              </Link>
+            );
+          })}
+        </nav>
 
-      <div className="px-4 py-4 border-t border-white/10">
-        <div className="flex items-center gap-3 px-3 py-2">
+        <div className="px-4 py-4 border-t border-white/10 flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">
-            {userName}
+            {user.name?.charAt(0) || "U"}
           </div>
-          <div>
-            <p className="text-white text-xs font-medium">{fullName}</p>
-            <p className="text-white/40 text-xs">{role}</p>
-          </div>
+          <p className="text-white/50 text-xs capitalize">{user.role || "staff"}</p>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
