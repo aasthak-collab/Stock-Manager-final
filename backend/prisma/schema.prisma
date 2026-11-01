@@ -62,6 +62,8 @@ model Purchase {
 
   item     Item     @relation(fields: [itemId], references: [id])
   supplier Supplier @relation(fields: [supplierId], references: [id])
+  billFile String?
+  billName String?
 }
 
 model Buyer {
@@ -85,6 +87,8 @@ model Sale {
 
   item  Item @relation(fields: [itemId], references: [id])
   buyer Buyer @relation(fields: [buyerId], references: [id])
+  billFile String?
+  billName String?
 }
 
 model Worker {

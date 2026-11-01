@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import api from "../../libraries/axios";
 import { Plus, Trash2 } from "lucide-react";
 import ItemSelect from "../components/ItemSelect";
+import { BillPicker, openBill, Bill } from "../components/BillUpload";
 
 interface Item {
   id: number;
@@ -20,6 +21,7 @@ interface Purchase {
   date: string;
   item: { name: string; unit: string };
   supplier: { name: string };
+  hasBill: boolean;
 }
 
 interface PurchaseRow {
@@ -30,6 +32,7 @@ interface PurchaseRow {
 
 export default function PurchasesPage() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [bill, setBill] = useState<Bill | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -81,26 +84,20 @@ export default function PurchasesPage() {
   const totalAmount = rows.reduce((sum, r) => sum + r.quantity * r.rate, 0);
 
   const handleAddPurchase = async () => {
-    try {
-      // Each row is saved as its own purchase with the same supplier and invoice
-      for (const row of rows) {
-        if (!row.itemId || !row.quantity || !row.rate) continue;
-        await api.post("/api/purchases", {
-          itemId: parseInt(row.itemId),
-          supplierName,
-          quantity: Number(row.quantity),
-          rate: Number(row.rate),
-          invoice,
-        });
-      }
-      setRows([{ itemId: "", quantity: 0, rate: 0 }]);
-      setSupplierName("");
-      setInvoice("");
-      setShowForm(false);
-      fetchPurchases();
-    } catch (err) {
-      console.error(err);
+    let first = true;
+    for (const row of rows) {
+      if (!row.itemId || !row.quantity || !row.rate) continue;
+      await api.post("/api/purchases", {
+        itemId: parseInt(row.itemId),
+        supplierName,
+        quantity: Number(row.quantity),
+        rate: Number(row.rate),
+        invoice,
+        ...(first && bill ? bill : {}),
+      });
+      first = false;
     }
+    setBill(null);
   };
 
   return (
@@ -210,6 +207,8 @@ export default function PurchasesPage() {
             Add another item
           </button>
 
+          <BillPicker bill={bill} onChange={setBill} />
+
           <div className="bg-blue-50 rounded-xl px-4 py-3 flex items-center justify-between">
             <p className="text-soft text-sm">Total Amount</p>
             <p className="text-primary font-bold text-lg">₹{totalAmount.toLocaleString()}</p>
@@ -263,7 +262,14 @@ export default function PurchasesPage() {
                   <td className="px-6 py-4 text-beige">{p.quantity} {p.item.unit}</td>
                   <td className="px-6 py-4 text-soft">₹{p.rate}</td>
                   <td className="px-6 py-4 text-beige font-medium">₹{p.total.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-soft">{p.invoice || "—"}</td>
+                  <td className="px-6 py-4 text-soft">
+                    {p.invoice || "—"}
+                    {p.hasBill && (
+                      <button onClick={() => openBill("purchases", p.id)} className="ml-2 text-primary text-xs underline">
+                        View bill
+                      </button>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-soft">
                     {new Date(p.date).toLocaleDateString("en-IN")}
                   </td>

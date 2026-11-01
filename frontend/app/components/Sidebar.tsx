@@ -49,12 +49,13 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
-        <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
-          <img src="/logo.png" alt="Om Sai" className="w-20 h-20 object-contain" />
-          <button onClick={onClose} className="md:hidden text-white/70">
-            <X size={20} />
-          </button>
-        </div>
+        <div className="px-4 py-5 border-b border-white/10 relative flex flex-col items-center gap-2">
+  <button onClick={onClose} className="md:hidden absolute top-3 right-3 text-white/70">
+    <X size={20} />
+  </button>
+  <img src="/logo.png" alt="Om Sai Enterprises" className="w-40 h-32 object-contain" />
+  <p className="text-white font-bold text-sm tracking-wide text-center">Om Sai Enterprises</p>
+</div>
 
         <nav className="flex flex-col gap-1 px-3 py-4 flex-1 overflow-y-auto">
           {items.map((item) => {

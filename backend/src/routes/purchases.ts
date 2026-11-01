@@ -1,74 +1,57 @@
 import { Router, Request, Response } from "express";
-import { logAudit } from "../auditLogger";
 import prisma from "../prismaClient";
+import { logAudit } from "../auditLogger";
 
 const router = Router();
 
-// Get all purchases
+// List purchases (the bill file itself is not sent, only whether one exists)
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
     const purchases = await prisma.purchase.findMany({
       include: { item: true, supplier: true },
       orderBy: { date: "desc" },
     });
-    res.json(purchases);
+    res.json(purchases.map(({ billFile, ...rest }) => ({ ...rest, hasBill: !!billFile })));
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch purchases" });
   }
 });
 
-// Add new purchase
+// Download one bill
+router.get("/:id/bill", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const p = await prisma.purchase.findUnique({ where: { id: parseInt(req.params.id as string) } });
+    if (!p || !p.billFile) {
+      res.status(404).json({ error: "No bill" });
+      return;
+    }
+    res.json({ billFile: p.billFile, billName: p.billName });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch bill" });
+  }
+});
+
 router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const { itemId, supplierName, quantity, rate, invoice } = req.body;
+    const { itemId, supplierName, quantity, rate, invoice, billFile, billName } = req.body;
     const total = quantity * rate;
 
-    // Create or find supplier
-    let supplier = await prisma.supplier.findFirst({
-      where: { name: supplierName },
-    });
+    let supplier = await prisma.supplier.findFirst({ where: { name: supplierName } });
     if (!supplier) {
-      supplier = await prisma.supplier.create({
-        data: { name: supplierName },
-      });
+      supplier = await prisma.supplier.create({ data: { name: supplierName } });
     }
 
-    // Create purchase
     const purchase = await prisma.purchase.create({
-      data: {
-        itemId,
-        supplierId: supplier.id,
-        quantity,
-        rate,
-        total,
-        invoice,
-      },
+      data: { itemId, supplierId: supplier.id, quantity, rate, total, invoice, billFile, billName },
       include: { item: true, supplier: true },
     });
-    await logAudit(
-    "CREATE",
-    "PURCHASE",
-    `Purchased ${quantity} ${purchase.item.name} from ${supplierName} for ₹${total}`,
-    req.headers["x-user-email"] as string
-    );
 
-    // Update stock
-    await prisma.item.update({
-      where: { id: itemId },
-      data: { quantity: { increment: quantity } },
-    });
+    await prisma.item.update({ where: { id: itemId }, data: { quantity: { increment: quantity } } });
 
-    // Add stock transaction
     await prisma.stockTransaction.create({
-      data: {
-        itemId,
-        type: "IN",
-        quantity,
-        note: `Purchase from ${supplierName}`,
-      },
+      data: { itemId, type: "IN", quantity, note: `Purchase from ${supplierName}` },
     });
 
-    // Add ledger entry
     await prisma.ledgerEntry.create({
       data: {
         type: "DEBIT",
@@ -79,7 +62,15 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    res.json(purchase);
+    await logAudit(
+      "CREATE",
+      "PURCHASE",
+      `Purchased ${quantity} ${purchase.item.name} from ${supplierName} for ₹${total}`,
+      req.headers["x-user-email"] as string
+    );
+
+    const { billFile: _omit, ...safe } = purchase;
+    res.json(safe);
   } catch (error) {
     res.status(500).json({ error: "Failed to create purchase" });
   }
