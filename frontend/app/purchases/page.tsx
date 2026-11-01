@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "../../libraries/axios";
 import { Plus, Trash2 } from "lucide-react";
+import ItemSelect from "../components/ItemSelect";
 
 interface Item {
   id: number;
@@ -77,11 +78,11 @@ export default function PurchasesPage() {
     setRows(updated);
   };
 
-  const totalAmount = rows.reduce((sum, r) => sum + (r.quantity * r.rate), 0);
+  const totalAmount = rows.reduce((sum, r) => sum + r.quantity * r.rate, 0);
 
   const handleAddPurchase = async () => {
     try {
-      // Submit each row as a separate purchase with same supplier and invoice
+      // Each row is saved as its own purchase with the same supplier and invoice
       for (const row of rows) {
         if (!row.itemId || !row.quantity || !row.rate) continue;
         await api.post("/api/purchases", {
@@ -123,7 +124,6 @@ export default function PurchasesPage() {
         <div className="bg-card rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4">
           <h3 className="text-beige font-semibold">New Purchase Entry</h3>
 
-          {/* Supplier + Invoice */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-soft text-xs">Supplier Name</label>
@@ -158,18 +158,12 @@ export default function PurchasesPage() {
             {rows.map((row, index) => (
               <div key={index} className="grid grid-cols-12 gap-2 items-center">
                 <div className="col-span-5">
-                  <select
+                  {/* Searchable dropdown replaces the plain select */}
+                  <ItemSelect
+                    items={items}
                     value={row.itemId}
-                    onChange={(e) => updateRow(index, "itemId", e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-beige rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
-                  >
-                    <option value="">Select item</option>
-                    {items.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name} ({item.unit})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(id) => updateRow(index, "itemId", id)}
+                  />
                 </div>
                 <div className="col-span-2">
                   <input
@@ -208,7 +202,6 @@ export default function PurchasesPage() {
             ))}
           </div>
 
-          {/* Add Row Button */}
           <button
             onClick={addRow}
             className="flex items-center gap-2 text-primary text-sm hover:underline w-fit"
@@ -217,12 +210,9 @@ export default function PurchasesPage() {
             Add another item
           </button>
 
-          {/* Total */}
           <div className="bg-blue-50 rounded-xl px-4 py-3 flex items-center justify-between">
             <p className="text-soft text-sm">Total Amount</p>
-            <p className="text-primary font-bold text-lg">
-              ₹{totalAmount.toLocaleString()}
-            </p>
+            <p className="text-primary font-bold text-lg">₹{totalAmount.toLocaleString()}</p>
           </div>
 
           <div className="flex gap-3">
