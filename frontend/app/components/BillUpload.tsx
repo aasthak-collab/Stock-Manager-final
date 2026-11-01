@@ -8,7 +8,33 @@ export interface Bill {
   billName: string;
 }
 
-// File picker: works with computer files, and the camera on phones
+const MAX_BYTES = 2 * 1024 * 1024; // 2 MB limit
+
+// Reads any file as a text string (data URL)
+const readAsDataUrl = (file: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+// Shrinks an image: max 1600px wide, JPEG quality 0.7
+const compressImage = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 1600 / img.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", 0.7));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+
 export function BillPicker({
   bill,
   onChange,
@@ -16,16 +42,40 @@ export function BillPicker({
   bill: Bill | null;
   onChange: (b: Bill | null) => void;
 }) {
-  const pick = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      alert("File is too large. Please choose a file under 2 MB.");
-      return;
+
+    try {
+      let data: string;
+      let name = file.name;
+
+      if (file.type.startsWith("image/")) {
+        // Images are compressed automatically
+        data = await compressImage(file);
+        name = name.replace(/\.[^.]+$/, "") + ".jpg";
+      } else if (file.type === "application/pdf") {
+        // PDFs can't be compressed here, so they must be under 2 MB
+        if (file.size > MAX_BYTES) {
+          alert("This PDF is over 2 MB. Please choose a smaller PDF or upload a photo of the bill.");
+          return;
+        }
+        data = await readAsDataUrl(file);
+      } else {
+        alert("Please choose an image or a PDF.");
+        return;
+      }
+
+      // Final safety check on the size we will actually save
+      if (data.length * 0.75 > MAX_BYTES) {
+        alert("File is still over 2 MB after compression. Please use a smaller file.");
+        return;
+      }
+
+      onChange({ billFile: data, billName: name });
+    } catch {
+      alert("Could not read this file.");
     }
-    const reader = new FileReader();
-    reader.onload = () => onChange({ billFile: reader.result as string, billName: file.name });
-    reader.readAsDataURL(file); // turns the file into text we can save
   };
 
   return (
