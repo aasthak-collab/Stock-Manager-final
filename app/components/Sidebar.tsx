@@ -22,7 +22,7 @@ const navItems = [
   { key: "settings", href: "/settings", icon: Settings, adminOnly: true },
 ];
 
-// isOpen/onClose control the slide-in menu on phones
+// isOpen/onClose are passed in from layout.tsx
 export default function Sidebar({
   isOpen,
   onClose,
@@ -44,20 +44,23 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Dark overlay behind the menu, phones only */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={onClose} />
-      )}
+      {/* Dark overlay behind the menu, on all screen sizes */}
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 bg-black/50 z-30 transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      />
 
-      {/* Fixed + slides in on phones; normal static column from md (tablet) up */}
+      {/* Always fixed, slides in/out smoothly */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-sidebar flex flex-col
-          transform transition-transform duration-200
-          ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar flex flex-col
+          transform transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
           <img src="/logo.png" alt="Om Sai Enterprises" className="w-24 h-24 object-contain" />
-          <button onClick={onClose} className="md:hidden text-white/70">
+          <button onClick={onClose} className="text-white/70 hover:text-white">
             <X size={20} />
           </button>
         </div>
@@ -70,9 +73,11 @@ export default function Sidebar({
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={onClose} // close menu after tapping a link on phone
+                onClick={onClose} // close menu after clicking a link
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  active ? "bg-primary text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
+                  active
+                    ? "bg-primary text-white"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <Icon size={18} />
