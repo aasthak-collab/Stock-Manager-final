@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   {/* min-w-0 lets wide tables scroll instead of stretching the page */}
                   <div className="flex flex-col flex-1 min-w-0">
                     <Topbar onMenuClick={() => setMenuOpen(true)} />
-                    <main className="flex-1 p-4 md:p-6">{children}</main>
+                    <main key={pathname} className="flex-1 p-4 md:p-6 page-fade">{children}</main>
                   </div>
                 </>
               )}

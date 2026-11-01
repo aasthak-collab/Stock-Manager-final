@@ -56,9 +56,9 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
     <header className="h-16 bg-card border-b border-gray-200 flex items-center justify-between px-4 md:px-6">
       <div className="flex items-center">
         {/* Hamburger: phones only */}
-        <button onClick={onMenuClick} className="md:hidden mr-3 text-soft">
-          <Menu size={22} />
-        </button>
+        <button onClick={onMenuClick} className="mr-3 text-soft hover:text-beige">
+  <Menu size={22} />
+</button>
         {/* No user name shown anymore */}
         <p className="text-beige font-semibold text-sm">{t("welcome")} 👋</p>
       </div>
